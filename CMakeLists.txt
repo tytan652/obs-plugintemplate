@@ -66,7 +66,7 @@ else()
 endif()
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE OBS::libobs OBS::obs-frontend-api Qt5::Core
+  ${PROJECT_NAME} PRIVATE OBS::libobs OBS::frontend-api Qt5::Core
                                 Qt5::Widgets)
 
 set_target_properties(
