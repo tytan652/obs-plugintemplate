@@ -33,14 +33,55 @@ endif()
 target_sources(${PROJECT_NAME} PRIVATE src/plugin-main.c)
 
 # /!\ TAKE NOTE: No need to edit things past this point /!\
+if(NOT COMMAND find_qt)
+  macro(find_qt)
+    set(oneValueArgs VERSION)
+    set(multiValueArgs COMPONENTS COMPONENTS_WIN COMPONENTS_MAC
+                       COMPONENTS_LINUX)
+    cmake_parse_arguments(FIND_QT "" "${oneValueArgs}" "${multiValueArgs}"
+                          ${ARGN})
+
+    if(OS_WINDOWS)
+      find_package(
+        Qt${FIND_QT_VERSION}
+        COMPONENTS ${FIND_QT_COMPONENTS} ${FIND_QT_COMPONENTS_WIN}
+        REQUIRED)
+    elseif(OS_MACOS)
+      find_package(
+        Qt${FIND_QT_VERSION}
+        COMPONENTS ${FIND_QT_COMPONENTS} ${FIND_QT_COMPONENTS_MAC}
+        REQUIRED)
+    else()
+      find_package(
+        Qt${FIND_QT_VERSION}
+        COMPONENTS ${FIND_QT_COMPONENTS} ${FIND_QT_COMPONENTS_LINUX}
+        REQUIRED)
+    endif()
+
+    foreach(_COMPONENT IN LISTS ${FIND_QT_COMPONENTS})
+      if(NOT TARGET Qt::${_COMPONENT} AND TARGET
+                                          Qt${FIND_QT_VERSION}::${_COMPONENT})
+        add_library(Qt::${_COMPONENT} ALIAS Qt${FIND_QT_VERSION}::${_COMPONENT})
+      endif()
+    endforeach()
+  endmacro()
+endif()
 
 # Set those only if build out of OBS Studio tree
 if(BUILD_OUT_OF_TREE)
   find_package(libobs REQUIRED)
   find_package(obs-frontend-api REQUIRED)
   include(external/ObsPluginHelpers.cmake)
+
+  if(NOT QT_VERSION)
+    set(QT_VERSION
+        "5"
+        CACHE STRING "OBS Qt version [5, 6]" FORCE)
+    set_property(CACHE QT_VERSION PROPERTY STRINGS 5 6)
+  endif()
 endif()
-find_package(Qt5Widgets REQUIRED)
+
+find_qt(VERSION ${QT_VERSION} COMPONENTS Widgets)
 
 if(BUILD_OUT_OF_TREE)
   configure_file(src/plugin-macros.h.in
@@ -65,7 +106,7 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE OBS::libobs OBS::frontend-api
-                                              Qt5::Widgets)
+                                              Qt${QT_VERSION}::Widgets)
 
 set_target_properties(
   ${PROJECT_NAME}
