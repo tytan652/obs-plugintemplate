@@ -40,7 +40,6 @@ if(BUILD_OUT_OF_TREE)
   find_package(obs-frontend-api REQUIRED)
   include(external/ObsPluginHelpers.cmake)
 endif()
-find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
 if(BUILD_OUT_OF_TREE)
@@ -65,9 +64,8 @@ else()
                             "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 endif()
 
-target_link_libraries(
-  ${PROJECT_NAME} PRIVATE OBS::libobs OBS::frontend-api Qt5::Core
-                                Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE OBS::libobs OBS::frontend-api
+                                              Qt5::Widgets)
 
 set_target_properties(
   ${PROJECT_NAME}
