@@ -1,4 +1,13 @@
-cmake_minimum_required(VERSION 3.16...3.21)
+# --- Detect if the plugin is build out of tree or not ---
+if(CMAKE_PROJECT_NAME STREQUAL "obs-studio")
+  set(BUILD_OUT_OF_TREE OFF)
+else()
+  set(BUILD_OUT_OF_TREE ON)
+  cmake_minimum_required(VERSION 3.16...3.21)
+endif()
+# --- End of section ---
+
+# --- General plugin settings ---
 
 # Change obs-plugintemplate to your plugin's name in a machine-readable format (e.g.:
 # obs-myawesomeplugin) and set
@@ -20,14 +29,19 @@ set(LINUX_MAINTAINER_EMAIL "me@mymailhost.com")
 # e.g. in Xcode or Visual Studio
 target_sources(${PROJECT_NAME} PRIVATE src/plugin-main.c)
 
-# Import libobs as main plugin dependency
-find_package(libobs REQUIRED)
-include(cmake/ObsPluginHelpers.cmake)
+if(BUILD_OUT_OF_TREE)
+  # Import libobs as main plugin dependency
+  find_package(libobs REQUIRED)
+  find_package(obs-frontend-api REQUIRED)
+  include(cmake/ObsPluginHelpers.cmake)
+  set(OBS_FRONTEND_API_NAME "obs-frontend-api")
+else()
+  set(OBS_FRONTEND_API_NAME "frontend-api")
+endif()
 
 # Uncomment these lines if you want to use the OBS Frontend API in your plugin
 #[[
-find_package(obs-frontend-api REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
+target_link_libraries(${PROJECT_NAME} PRIVATE OBS::${OBS_FRONTEND_API_NAME})
 #]]
 
 # Uncomment those lines if you want to use Qt in your plugin
@@ -51,31 +65,35 @@ target_link_libraries(${PROJECT_NAME} PRIVATE OBS::libobs)
 
 # --- End of section ---
 
-# --- Windows-specific build settings and tasks ---
-if(OS_WINDOWS)
-  configure_file(cmake/bundle/windows/installer-Windows.iss.in
-                 ${CMAKE_BINARY_DIR}/installer-Windows.generated.iss)
-
-  if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
-  endif()
-  # --- End of section ---
-
-  # -- macOS specific build settings and tasks --
-elseif(OS_MACOS)
-  configure_file(cmake/bundle/macos/installer-macos.pkgproj.in
-                 ${CMAKE_BINARY_DIR}/installer-macos.generated.pkgproj)
-
-  set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
-  set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
-  set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
-
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
-  # --- End of section ---
-
-  # --- Linux-specific build settings and tasks ---
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
+endif()
+
+if(BUILD_OUT_OF_TREE)
+  # --- Windows-specific build settings and tasks ---
+  if(OS_WINDOWS)
+    configure_file(cmake/bundle/windows/installer-Windows.iss.in
+                   ${CMAKE_BINARY_DIR}/installer-Windows.generated.iss)
+
+    # --- End of section ---
+
+    # -- macOS specific build settings and tasks --
+  elseif(OS_MACOS)
+    configure_file(cmake/bundle/macos/installer-macos.pkgproj.in
+                   ${CMAKE_BINARY_DIR}/installer-macos.generated.pkgproj)
+
+    set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
+    set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
+    set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
+
+    # --- End of section ---
+  endif()
+  # --- In-tree build settings and tasks ---
+else()
+  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "plugins" PREFIX "")
+  # --- End of section ---
 endif()
 # --- End of section ---
 

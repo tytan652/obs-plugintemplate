@@ -25,6 +25,16 @@ set(LINUX_MAINTAINER_EMAIL "me@contoso.com")
 
 The build scripts (contained in the `.github/scripts` directory) will update the `project` line automatically based on values from the `buildspec.json` file. If the scripts are not used, these changes need to be done manually.
 
+## In-tree build for developement
+
+This plugin can be built inside OBS Studio build tree for easier debugging and testing.
+
+- [Build OBS Studio](https://obsproject.com/wiki/Install-Instructions#building-obs-studio)
+- Clone your fork of this plugin repo inside the `plugins` folder `obs-studio`.
+- Add `add_subdirectory(obs-plugintemplate)` to `plugins/CMakeLists.txt`.
+  - Replace `obs-plugintemplate` by the folder name of your plugin repo.
+- Your plugin will now be built alongside OBS Studio.
+
 ## GitHub Actions & CI
 
 The scripts contained in `github/scripts` can be used to build and package the plugin and take care of setting up obs-studio as well as its own dependencies. A default workflow for GitHub Actions is also provided and will use these scripts.
