@@ -48,7 +48,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE OBS::${OBS_FRONTEND_API_NAME})
 #[[
 find_qt(COMPONENTS Widgets Core)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets)
-set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC ON AUTOUIC ON AUTORCC ON)
+set_target_properties(
+  ${PROJECT_NAME}
+  PROPERTIES AUTOMOC ON
+             AUTOUIC ON
+             AUTORCC ON)
 #]]
 
 configure_file(src/plugin-macros.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin-macros.generated.h)
